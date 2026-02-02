@@ -1,97 +1,76 @@
-# Mini Pytest API Tests
+# Python Backend & QA Portfólió
 
-Production-quality, configuration-driven API testing framework example using Pytest, Requests, and Pydantic.
-Targeting [Requirements.in](https://reqres.in/) as a demo API.
+Ez a repository két, ipari sztenderdeknek megfelelő ("production-grade") referencia projektet tartalmaz, amelyek célja a modern Python fejlesztési és tesztelési best practice-ek demonstrálása.
 
-## Features
-- **Configurable**: Environment-based configuration (dev, staging) via YAML and ENV vars.
-- **Robust Client**: Wrapper around `requests` with automatic logging and retry logic.
-- **Validation**: Strict response schema validation using `Pydantic`.
-- **Reporting**: HTML test reports generated automatically.
-- **CI/CD**: GitHub Actions workflow included.
-- **Code Quality**: Pre-configured `ruff`, `black`, and `mypy`.
+A projektek elszeparált mappákban találhatók, saját virtuális környezettel és függőségekkel rendelkeznek.
 
-## Project Structure
-```text
-mini-pytest-api-tests/
-├── config/                 # Environment specific configurations
-├── src/
-│   └── apitest/           # Core framework logic (client, config, schemas)
-├── tests/                  # Test suites
-│   ├── conftest.py        # Fixtures (client, session)
-│   ├── test_users.py      # Feature tests
-│   └── test_other.py      # Parametrized examples
-├── .github/workflows/      # CI Pipeline
-├── Makefile                # Shortcut commands
-└── pyproject.toml          # Dependencies & Tool config
-```
+---
 
-## Quickstart
+## 1. 🧪 Mini Pytest API Tests (`mini-pytest-api-tests/`)
 
-### Prerequisites
-- Python 3.9+
+Ez a projekt egy **professzionális, skálázható API tesztelési keretrendszert** valósít meg. Nem egy egyszerű szkriptgyűjtemény, hanem egy strukturált, könnyen bővíthető framework.
 
-### Installation
-1. Clone the repo:
-   ```bash
-   git clone <repo-url>
-   cd mini-pytest-api-tests
-   ```
-2. Install dependencies:
-   ```bash
-   # Using Makefile (Linux/Mac/WSL)
-   make install
-   
-   # Or manually
-   pip install -e .[dev]
-   ```
+### 🔭 Cél
+Bemutatni, hogyan lehet karbantartható, környezet-független és típusbiztos teszteket írni REST API-khoz.
 
-### Running Tests
-By default, tests run against the **dev** environment.
+### 🛠 Technikai Stack
+- **Core**: Python 3.9+, `pytest`
+- **HTTP Client**: `requests` (wrapper osztállyal, automatikus retry logikával)
+- **Validáció**: `pydantic` (szigorú típusellenőrzés a válaszokra)
+- **CI/CD**: GitHub Actions
+- **Quality**: `ruff`, `mypy`, `black`
+
+### 💡 Kiemelt Megoldások (Senior Level)
+- **Környezetkezelés**: A konfiguráció (pl. base URL) környezeti változók (`ENV`) és YAML fájlok kombinációjából töltődik be. Ugyanaz a tesztkód futtatható `dev`, `staging` és `prod` környezeten is.
+- **Robust Client**: Az API hívások egy saját `ApiClient` osztályon keresztül mennek, amely automatikusan kezeli a hitelesítést (Auth headers), a logolást és az újrapróbálkozást (retry) hálózati hibák esetén.
+- **Deklaratív Validáció**: A JSON válaszokat nem dictionary-ként kezeljük, hanem Pydantic modellekké alakítjuk. Ez azonnal kibuktatja, ha az API megváltoztatja a választípusokat (pl. `int` helyett `string`-et küld).
+- **Jelentéskészítés**: Automatikus HTML riport generálás a tesztfutásokról.
+
+---
+
+## 2. 📊 Log Parser & Reporter (`log-parser-reporter/`)
+
+Ez a projekt egy **nagy teljesítményű log feldolgozó és analizáló eszközt** (CLI) valósít meg. Képes hatalmas méretű logfájlok feldolgozására anélkül, hogy azokat betöltené a memóriába.
+
+### 🔭 Cél
+Demonstrálni a streaming adatfeldolgozást, a hatékony algoritmusokat és a modern CLI fejlesztést.
+
+### 🛠 Technikai Stack
+- **CLI**: `typer`, `rich` (színes, interaktív kimenet)
+- **Core**: Python Generator-ok (streaming), `pydantic`
+- **Riport**: `jinja2` (HTML templating)
+- **Algoritmusok**: `heapq` (Top-N számítás), statisztikai aggregációk
+
+### 💡 Kiemelt Megoldások (Senior Level)
+- **Streaming Architecture**: A rendszer soronként ("lazán") olvassa a fájlokat. Ez lehetővé teszi akár több gigabájtos logfájlok feldolgozását is minimális memóriahasználat mellett (O(1) memóriaigény a legtöbb metrikához).
+- **Plug-in Rendszer**: A parserek (JSON, Regex/Text) egy közös `BaseParser` interfészt valósítanak meg. Új formátum támogatása (pl. CSV, Syslog) csak egy új osztály létrehozását igényli a meglévő kód módosítása nélkül (Open-Closed Principle).
+- **Hibatűrés (Robustness)**: A rendszer nem áll le (crash) egyetlen hibás sor miatt sem. A hibás sorokat külön gyűjti (`events_failed.csv`) későbbi elemzésre, miközben a helyes adatokat feldolgozza.
+- **Analitika**: Kiszámolja a P50/P95/P99 latencia értékeket és képes detektálni az anomáliákat (pl. hirtelen megugró hibaarány egy adott időablakban).
+
+---
+
+## 🚀 Közös Jellemzők (Quality Gates)
+
+Mindkét projekt szigorú minőségbiztosítási eszközöket használ, amelyek garantálják a kód fenntarthatóságát:
+
+1.  **Type Hinting**: Minden függvény szigorúan típusos (`mypy --strict`).
+2.  **Linting & Formatting**: `ruff` és `black` biztosítja az egységes kódstílust.
+3.  **Makefile**: Egyszerűsített parancsok (`make test`, `make lint`) a fejlesztői élmény javítására.
+4.  **Reprodukálhatóság**: `pyproject.toml` definiálja a pontos függőségeket.
+
+## 🏃‍♂️ Hogyan használd?
+
+Lépj be az egyik projekt könyvtárába, és kövesd az ottani `README.md` utasításait:
 
 ```bash
-# Run all tests
+# 1. API Tesztek
+cd mini-pytest-api-tests
+pip install -e .
 pytest
 
-# Run with Makefile
-make test
-
-# Run only smoke tests
-pytest -m smoke
-
-# Run specific feature
-pytest tests/test_users.py
+# 2. Log Parser
+cd log-parser-reporter
+pip install -e .
+python gen_samples.py
+log-reporter report --input samples/
 ```
-
-### Configuration & Environments
-To switch environments, set the `TARGET_ENV` variable.
-Current options: `dev`, `staging`.
-
-```bash
-# Linux / Mac
-TARGET_ENV=staging pytest
-
-# Windows PowerShell
-$env:TARGET_ENV="staging"; pytest
-```
-
-Credentials (like `API_TOKEN`) should be set via environment variables. See `.env.example`.
-
-### Generating Reports
-HTML reports are generated automatically in `.artifacts/report.html`.
-```bash
-pytest --html=.artifacts/report.html
-```
-
-## Design Decisions
-- **Requests vs Httpx**: Chosen `requests` for simplicity and vast ecosystem support, as async was not a hard requirement.
-- **Pydantic**: For declarative and robust data validation.
-- **Pytest**: The de-facto standard for Python testing with powerful fixture system.
-- **Config**: Hybrid approach (YAML for static config, ENV for secrets/overrides) ensures security and flexibility.
-
-## Roadmap
-1. [ ] Add Docker support for running tests in isolated container.
-2. [ ] Integrate `Allure` reporting for more detailed historical trends.
-3. [ ] Add `pre-commit` hooks implementation.
-4. [ ] Implement AsyncClient using `httpx` for high-concurrency performance tests.
-5. [ ] Add contract testing integration (e.g., Pact).
