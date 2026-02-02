@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Analysis Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f9; }
+        .container { max_width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #007bff; }
+        .metric-label { color: #6c757d; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-INFO { background: #e3f2fd; color: #0d47a1; }
+        .badge-WARN { background: #fff3e0; color: #e65100; }
+        .badge-ERROR { background: #ffebee; color: #b71c1c; }
+        .anomalies { border-left: 4px solid #dc3545; background: #fff5f5; padding: 15px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Log Analysis Report</h1>
+        <p>Period: {{ summary.start_time }} - {{ summary.end_time }}</p>
+
+        {% if summary.anomalies %}
+        <div class="anomalies">
+            <h3>⚠️ Anomalies Detected</h3>
+            <ul>
+            {% for anomaly in summary.anomalies %}
+                <li>{{ anomaly.time }}: Error Rate {{ anomaly.error_rate * 100 }}% ({{ anomaly.errors }}/{{ anomaly.total }} requests)</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <h2>Key Metrics</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">{{ summary.total_requests }}</div>
+                <div class="metric-label">Total Requests</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ summary.duration_stats.p95 }}ms</div>
+                <div class="metric-label">P95 Latency</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ summary.level_counts.ERROR or 0 }}</div>
+                <div class="metric-label">Total Errors</div>
+            </div>
+        </div>
+
+        <h2>Status Codes</h2>
+        <table>
+            <thead><tr><th>Code</th><th>Count</th></tr></thead>
+            <tbody>
+            {% for code, count in summary.status_codes.items() %}
+                <tr><td>{{ code }}</td><td>{{ count }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Top Slowest Requests</h2>
+        <table>
+            <thead><tr><th>Duration (ms)</th><th>Request ID</th><th>Message</th></tr></thead>
+            <tbody>
+            {% for req in summary.slowest_requests %}
+                <tr>
+                    <td>{{ req.duration }}</td>
+                    <td><code>{{ req.request_id }}</code></td>
+                    <td>{{ req.msg }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
